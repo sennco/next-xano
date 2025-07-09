@@ -17,7 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { TwitchLogo } from "@phosphor-icons/react";
+import { GithubLogo } from "@phosphor-icons/react";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Email inválido" }),
@@ -169,11 +169,11 @@ export function LoginForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full bg-[#9146FF] text-white hover:bg-[#7d3bdf] hover:text-white"
+          className="w-full bg-[#808080] text-white hover:bg-[#949494] hover:text-white"
           onClick={async () => {}}
         >
-          <TwitchLogo className="mr-2 h-4 w-4" />
-          Entrar com Twitch
+          <GithubLogo className="mr-2 h-4 w-4" />
+          Entrar com GitHub
         </Button>
       </form>
     </Form>
