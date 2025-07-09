@@ -1,35 +1,50 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const signupSchema = z
   .object({
-    name: z.string().min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
+    name: z
+      .string()
+      .min(3, { message: "O nome deve ter pelo menos 3 caracteres" }),
     email: z.string().email({ message: "Email inválido" }),
-    password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres" }),
-    confirmPassword: z.string().min(8, { message: "A confirmação de senha deve ter pelo menos 8 caracteres" }),
+    password: z
+      .string()
+      .min(8, { message: "A senha deve ter pelo menos 8 caracteres" }),
+    confirmPassword: z
+      .string()
+      .min(8, {
+        message: "A confirmação de senha deve ter pelo menos 8 caracteres",
+      }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não coincidem",
     path: ["confirmPassword"],
-  })
+  });
 
-type SignupFormValues = z.infer<typeof signupSchema>
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export function SignupForm() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -39,12 +54,45 @@ export function SignupForm() {
       password: "",
       confirmPassword: "",
     },
-  })
+  });
 
   async function onSubmit(formData: SignupFormValues) {
+  setIsLoading(true);
 
+  try {
+    const response = await fetch(
+      "https://x8ki-letl-twmt.n7.xano.io/api:GS0AE33D/auth/signup",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      }
+    );
 
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Exibe erro retornado da API do Xano
+      form.setError("email", { message: data.message || "Erro ao cadastrar" });
+      return;
+    }
+
+    // Armazena o token (você pode optar por usar cookies seguros também)
+    localStorage.setItem("authToken", data.authToken || data.token || "");
+
+    // Redireciona o usuário logado
+    router.push("/dashboard"); // ou a rota que desejar
+  } catch (error) {
+    console.error("Erro inesperado:", error);
+    form.setError("email", {
+      message: "Erro inesperado. Tente novamente mais tarde.",
+    });
+  } finally {
+    setIsLoading(false);
   }
+}
 
   return (
     <Form {...form}>
@@ -56,7 +104,11 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Nome</FormLabel>
               <FormControl>
-                <Input placeholder="Seu nome completo" {...field} disabled={isLoading} />
+                <Input
+                  placeholder="Seu nome completo"
+                  {...field}
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -70,7 +122,12 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="seu@email.com" type="email" {...field} disabled={isLoading} />
+                <Input
+                  placeholder="seu@email.com"
+                  type="email"
+                  {...field}
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -104,7 +161,9 @@ export function SignupForm() {
                     ) : (
                       <Eye className="h-4 w-4 text-muted-foreground" />
                     )}
-                    <span className="sr-only">{showPassword ? "Esconder senha" : "Mostrar senha"}</span>
+                    <span className="sr-only">
+                      {showPassword ? "Esconder senha" : "Mostrar senha"}
+                    </span>
                   </Button>
                 </div>
               </FormControl>
@@ -140,7 +199,9 @@ export function SignupForm() {
                     ) : (
                       <Eye className="h-4 w-4 text-muted-foreground" />
                     )}
-                    <span className="sr-only">{showConfirmPassword ? "Esconder senha" : "Mostrar senha"}</span>
+                    <span className="sr-only">
+                      {showConfirmPassword ? "Esconder senha" : "Mostrar senha"}
+                    </span>
                   </Button>
                 </div>
               </FormControl>
@@ -161,5 +222,5 @@ export function SignupForm() {
         </Button>
       </form>
     </Form>
-  )
+  );
 }
